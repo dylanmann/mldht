@@ -129,8 +129,6 @@ public class PassiveRedisIndexer implements Component {
 				writeQueue.add(str2buf(b.toString()));
 				handler.tryWrite.run();
 			}
-			
-						
 		}
 	}
 	

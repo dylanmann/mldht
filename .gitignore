@@ -4,3 +4,4 @@
 /bin/torrent-info
 /target/
 /work/
+*.class

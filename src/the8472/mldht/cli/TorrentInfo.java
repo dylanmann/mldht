@@ -10,6 +10,7 @@ import static the8472.utils.Functional.typedGet;
 import the8472.bencode.PrettyPrinter;
 import the8472.bencode.Tokenizer.BDecodingException;
 import the8472.bt.TorrentUtils;
+import the8472.utils.MathUtils;
 import the8472.utils.concurrent.SerializedTaskExecutor;
 
 import lbms.plugins.mldht.kad.Key;
@@ -46,12 +47,12 @@ public class TorrentInfo {
 	Map<String, Object> info;
 	Charset encoding = StandardCharsets.UTF_8;
 	boolean truncate = true;
-	
-	
+
+
 	public TorrentInfo(Path source) {
 		this.source = source;
 	}
-	
+
 	void readRaw() {
 		if(raw != null)
 			return;
@@ -134,9 +135,9 @@ public class TorrentInfo {
 		Consumer<String> printer = SerializedTaskExecutor.runSerialized((String s) -> {
 			System.out.println(s);
 		});
-		
+
 		String newline = "\\u000a|\\u000b|\\u000c|\\u000d|\\u0085|\\u2028|\\u2029";
-		
+
 		torrents.map(p -> {
 			TorrentInfo ti = new TorrentInfo(p);
 			try {
@@ -149,45 +150,45 @@ public class TorrentInfo {
 				ti.truncate = !noTrunc;
 				return p.toString() + "\n" + ti.raw() + '\n';
 			}
-				
-			
+
+
 			if(ti.info == null)
 				return p.toString() + " does not contain an info dictionary";
-			
+
 			long length = typedGet(ti.info, "length", Long.class).orElse(0L);
 			long largestSize = length;
 			int numFiles = 1;
-			
+
 			StringBuilder result = new StringBuilder();
 			Optional<String> name = ti.name();
-			
+
 			if(!name.isPresent()) {
 				return p.toString() + " does not contain a name field";
 			}
-			
+
 			String largestFile = "";
-			
+
 			List<Map<String, Object>> files = ti.files();
-			
+
 			if(!files.isEmpty()) {
 				length = files.stream().mapToLong(e -> typedGet(e, "length", Long.class).orElse(0L)).sum();
 				numFiles = files.size();
 				Map<String, Object> largest = files.stream().max(Comparator.comparing(e -> typedGet(e, "length", Long.class).orElse(0L))).get();
 				largestSize = typedGet(largest, "length", Long.class).orElse(0L);
-				
+
 				List<?> path = typedGet(largest, "path.utf-8", List.class).orElse(null);
 				if(path == null)
 					path = typedGet(largest, "path", List.class).orElse(null);
-				
+
 				largestFile = path.stream().filter(byte[].class::isInstance).map(b -> new String((byte[]) b, StandardCharsets.UTF_8)).collect(Collectors.joining("/"));
 				largestFile = largestFile.replaceAll(newline, " ");
 			}
-			
-			
+
+
 			result.append(p.toString());
 			result.append(" ");
 			ti.name().map(s -> s.replaceAll(newline, " ")).ifPresent(result::append);
-			
+
 			if(printLargest) {
 				if(numFiles > 1) {
 					result.append('/');
@@ -195,25 +196,71 @@ public class TorrentInfo {
 				}
 
 				result.append(" size:");
-				result.append(largestSize);
+				result.append(MathUtils.humanReadableBytes(largestSize));
 				result.append('/');
-				result.append(length);
+				result.append(MathUtils.humanReadableBytes(length));
 				result.append(" files:");
 				result.append(numFiles);
 			} else {
 				result.append(" size:");
-				result.append(length);
+				result.append(MathUtils.humanReadableBytes(length));
 				result.append(" files:");
 				result.append(numFiles);
 			}
-			
+
 			result.append(" ih:");
 			result.append(ti.infoHash().toString(false));
-			
+
 			return result.toString();
 		}).forEach(printer::accept);
-		
+	}
 
+	public static String decodeTorrent(ByteBuffer b) {
+		TorrentInfo ti = new TorrentInfo(null);
+		ti.raw = b;
+		try {
+			ti.decode();
+		} catch(BDecodingException ex) {
+			return "New torrent does not appear to be a bencoded file: " + ex.getMessage();
+		}
+
+
+		if(ti.info == null)
+			return ti.infoHash() + " does not contain an info dictionary";
+
+		long length = typedGet(ti.info, "length", Long.class).orElse(0L);
+		int numFiles = 1;
+
+		StringBuilder result = new StringBuilder();
+		Optional<String> name = ti.name();
+
+		if(!name.isPresent()) {
+			return ti.infoHash().toString(false) + " does not contain a name field";
+		}
+
+		String largestFile = "";
+
+		List<Map<String, Object>> files = ti.files();
+
+		if(!files.isEmpty()) {
+			length = files.stream().mapToLong(e -> typedGet(e, "length", Long.class).orElse(0L)).sum();
+			numFiles = files.size();
+		}
+
+		String newline = "\\u000a|\\u000b|\\u000c|\\u000d|\\u0085|\\u2028|\\u2029";
+
+		result.append("[NEW TORRENT] name:");
+		ti.name().map(s -> s.replaceAll(newline, " ")).ifPresent(result::append);
+
+		result.append(" size:");
+		result.append(MathUtils.humanReadableBytes(length));
+		result.append(" files:");
+		result.append(numFiles);
+
+		result.append(" hash:");
+		result.append(ti.infoHash().toString(false));
+
+		return result.toString();
 	}
 
 }

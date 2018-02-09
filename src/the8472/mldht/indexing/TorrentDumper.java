@@ -7,31 +7,31 @@ package the8472.mldht.indexing;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.joining;
 import static the8472.utils.Functional.autoclose;
 import static the8472.utils.Functional.shortCircuitingflatMap;
 import static the8472.utils.Functional.typedGet;
 import static the8472.utils.Functional.unchecked;
 
+import lbms.plugins.mldht.kad.*;
 import the8472.bencode.BDecoder;
 import the8472.bencode.BEncoder;
+import the8472.bencode.Tokenizer;
 import the8472.bt.TorrentUtils;
 import the8472.bt.UselessPeerFilter;
 import the8472.mldht.Component;
 import the8472.mldht.TorrentFetcher;
 import the8472.mldht.TorrentFetcher.FetchTask;
+import the8472.mldht.cli.TorrentInfo;
 import the8472.mldht.indexing.TorrentDumper.FetchStats.State;
 import the8472.utils.ConfigReader;
+import the8472.utils.MathUtils;
 import the8472.utils.ShufflingBag;
 import the8472.utils.concurrent.LoggingScheduledThreadPoolExecutor;
 import the8472.utils.concurrent.SerializedTaskExecutor;
 import the8472.utils.io.FileIO;
 
 import lbms.plugins.mldht.indexer.utils.RotatingBloomFilter;
-import lbms.plugins.mldht.kad.DHT;
-import lbms.plugins.mldht.kad.KBucketEntry;
-import lbms.plugins.mldht.kad.Key;
-import lbms.plugins.mldht.kad.RPCServer;
-import lbms.plugins.mldht.kad.TaskBuilder;
 import lbms.plugins.mldht.kad.DHT.LogLevel;
 import lbms.plugins.mldht.kad.messages.AnnounceRequest;
 import lbms.plugins.mldht.kad.messages.GetPeersRequest;
@@ -78,6 +78,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 
 
 public class TorrentDumper implements Component {
@@ -338,7 +339,28 @@ public class TorrentDumper implements Component {
 		}
 			
 	}
-	
+
+
+
+	void boonLog(FetchStats stats) {
+		StringBuilder s = new StringBuilder();
+		s.append("[STATS]");
+		s.append("key:");
+		s.append(stats.k);
+		s.append(" Sources: [ ");
+		s.append(stats.recentSources.stream().map(x-> x.getID()+"/"+x.getAddress()).collect(joining(" | ")));
+		s.append(" ]");
+//		boonLog(s);
+	}
+
+	void boonLog(CharSequence str) {
+		StringBuilder s = new StringBuilder();
+		s.append("[BOON]");
+		s.append(str);
+		System.out.println(s);
+		System.out.flush();
+	}
+
 	final Runnable singleThreadedDumpStats = SerializedTaskExecutor.onceMore(this::dumpStats);
 	
 	void dumpStats() {
@@ -417,7 +439,8 @@ public class TorrentDumper implements Component {
 				Path statsFile = toStore.statsName(statsDir, null);
 				
 				Path tempFile = Files.createTempFile(statsDir, statsFile.getFileName().toString(), ".stats");
-				
+				boonLog(toStore);
+
 				try(FileChannel ch = FileChannel.open(tempFile, StandardOpenOption.WRITE)) {
 					buf.clear();
 					new BEncoder().encodeInto(toStore.forBencoding(), buf);
@@ -528,9 +551,9 @@ public class TorrentDumper implements Component {
 			log(e);
 		}*/
 
-			
-		
-		
+
+
+
 	}
 	
 	
@@ -752,7 +775,9 @@ public class TorrentDumper implements Component {
 				taskFinished(stats, t);
 		}, scheduler);
 	}
-	
+
+
+
 	void taskFinished(FetchStats stats, FetchTask t) {
 		activeCount.decrementAndGet();
 		stats.recentSources.stream().max(Comparator.comparingLong(KBucketEntry::getLastSeen)).ifPresent(kbe -> {
@@ -788,6 +813,8 @@ public class TorrentDumper implements Component {
 				ByteBuffer torrent = TorrentUtils.wrapBareInfoDictionary(infoDict);
 				while(torrent.hasRemaining())
 					chan.write(torrent);
+
+				boonLog(TorrentInfo.decodeTorrent(TorrentUtils.wrapBareInfoDictionary(infoDict)));
 			}
 			synchronized (downloadedFilter) {
 				downloadedFilter.insert(stats.k.asBuffer());

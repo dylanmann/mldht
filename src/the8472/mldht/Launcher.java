@@ -71,9 +71,7 @@ public class Launcher {
 		}
 
 		@Override
-		public Path getStoragePath() {
-			return Paths.get(".");
-		}
+		public Path getStoragePath() { return Paths.get("."); }
 
 		@Override
 		public int getListeningPort() {
