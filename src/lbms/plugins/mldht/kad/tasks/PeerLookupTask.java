@@ -142,6 +142,7 @@ public class PeerLookupTask extends IteratingTask {
 		{
 			nodes.entries().filter(e -> !AddressUtils.isBogon(e.getAddress()) && !node.isLocalId(e.getID())).forEach(e -> {
 				returnedNodes.add(e);
+//				System.out.println("[BOON][Get_Peers] ID:" + e.getID() + " IP:" + e.getAddress());
 			});
 		}
 		
@@ -160,8 +161,8 @@ public class PeerLookupTask extends IteratingTask {
 				resultHandler.accept(match, it);
 				returnedItems.add(it);
 			}
-				
-			
+
+
 		}
 		
 		if(returnedItems.size() > 0 && firstResultTime == 0)
@@ -243,7 +244,7 @@ public class PeerLookupTask extends IteratingTask {
 					
 					if(DHT.isLogLevelEnabled(LogLevel.Verbose)) {
 						List<InetSocketAddress> sources = todo.getSources(e).stream().map(KBucketEntry::getAddress).collect(Collectors.toList());
-						DHT.log("Task "+getTaskID()+" sending call to "+ e + " sources:" + sources, LogLevel.Verbose);
+						DHT.log("Task "+getTaskID()+" sending call " + call.getMessageMethod() + " to "+ e + " sources:" + sources, LogLevel.Verbose);
 					}
 						
 					
@@ -253,7 +254,6 @@ public class PeerLookupTask extends IteratingTask {
 				}
 			}
 		}
-
 	}
 
 	

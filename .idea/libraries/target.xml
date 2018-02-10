@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="target">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/target/libmldht-0.1.1-SNAPSHOT-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/target/libmldht-0.1.1-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

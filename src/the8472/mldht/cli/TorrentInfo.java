@@ -249,7 +249,7 @@ public class TorrentInfo {
 
 		String newline = "\\u000a|\\u000b|\\u000c|\\u000d|\\u0085|\\u2028|\\u2029";
 
-		result.append("[NEW TORRENT] name:");
+		result.append("[NEW_TORRENT] name:");
 		ti.name().map(s -> s.replaceAll(newline, " ")).ifPresent(result::append);
 
 		result.append(" size:");

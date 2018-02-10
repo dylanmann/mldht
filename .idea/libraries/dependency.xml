@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="dependency">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/target/dependency/hamcrest-core-1.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/target/dependency/eddsa-0.2.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/target/dependency/junit-4.12.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -468,10 +468,9 @@ public class DHT implements DHTBase {
 		// everything OK, so store the value
 		PeerAddressDBItem item = PeerAddressDBItem.createFromAddress(r.getOrigin().getAddress(), r.getPort(), r.isSeed());
 		r.getVersion().ifPresent(item::setVersion);
-		if(!AddressUtils.isBogon(item))
-			System.out.println("[BOON][ANNOUNCE] " + item.getAddressAsString() + " " + r.getInfoHash().toString(false));
+		if(!AddressUtils.isBogon(item)) {
 			db.store(r.getInfoHash(), item);
-
+		}
 		// send a proper response to indicate everything is OK
 		AnnounceResponse rsp = new AnnounceResponse(r.getMTID());
 		rsp.setDestination(r.getOrigin());

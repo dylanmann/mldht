@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="libmldht-0.1.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/repo/mldht/core/libmldht/0.1.1-SNAPSHOT/libmldht-0.1.1-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

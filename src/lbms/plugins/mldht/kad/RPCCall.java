@@ -252,7 +252,7 @@ public class RPCCall {
 			return -1;
 		return responseTime - sentTime;
 	}
-	
+
 	public long getSentTime()
 	{
 		return sentTime;

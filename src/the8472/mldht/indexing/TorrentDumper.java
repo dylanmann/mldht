@@ -7,7 +7,6 @@ package the8472.mldht.indexing;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.util.stream.Collectors.joining;
 import static the8472.utils.Functional.autoclose;
 import static the8472.utils.Functional.shortCircuitingflatMap;
 import static the8472.utils.Functional.typedGet;
@@ -16,7 +15,6 @@ import static the8472.utils.Functional.unchecked;
 import lbms.plugins.mldht.kad.*;
 import the8472.bencode.BDecoder;
 import the8472.bencode.BEncoder;
-import the8472.bencode.Tokenizer;
 import the8472.bt.TorrentUtils;
 import the8472.bt.UselessPeerFilter;
 import the8472.mldht.Component;
@@ -82,7 +80,8 @@ import java.util.stream.Stream;
 
 
 public class TorrentDumper implements Component {
-	
+
+    BoonLogger l = BoonLogger.getLogger();
 	Collection<DHT> dhts;
 	Path storageDir = Paths.get(".", "dump-storage");
 	Path statsDir = storageDir.resolve("stats");
@@ -310,10 +309,13 @@ public class TorrentDumper implements Component {
 			if(theirCloseness > myCloseness && theirCloseness - myCloseness >= 8)
 				return; // they're looking for something that's significantly closer to their own ID than we are
 			process(gpr.getInfoHash(), theirID, gpr.getOrigin(), null);
+			l.log("[GET_PEERS] Hash:"+ gpr.getInfoHash().toString(false) + " ID:" + theirID.toString(false) + " IP:" + gpr.getOrigin());
 		}
 		if(m instanceof AnnounceRequest) {
 			AnnounceRequest anr = (AnnounceRequest) m;
 			process(anr.getInfoHash(), anr.getID(), anr.getOrigin(), anr.getNameUTF8().orElse(null));
+			String name = anr.getNameUTF8().orElse(null);
+			l.log("[ANNOUNCE]  Hash:"+ anr.getInfoHash().toString(false) + " ID:" + anr.getID().toString(false) + " IP:" + anr.getOrigin() + (name != null ? " NAME: " + name : ""));
 		}
 	}
 	
@@ -341,25 +343,17 @@ public class TorrentDumper implements Component {
 	}
 
 
-
-	void boonLog(FetchStats stats) {
-		StringBuilder s = new StringBuilder();
-		s.append("[STATS]");
-		s.append("key:");
-		s.append(stats.k);
-		s.append(" Sources: [ ");
-		s.append(stats.recentSources.stream().map(x-> x.getID()+"/"+x.getAddress()).collect(joining(" | ")));
-		s.append(" ]");
+// LOGGING FOR STATS, WE DON'T NEED THIS
+//	void boonLog(FetchStats stats) {
+//		StringBuilder s = new StringBuilder();
+//		s.append("[STATS]");
+//		s.append("key:");
+//		s.append(stats.k);
+//		s.append(" Sources: [ ");
+//		s.append(stats.recentSources.stream().map(x-> x.getID()+"/"+x.getAddress()).collect(joining(" | ")));
+//		s.append(" ]");
 //		boonLog(s);
-	}
-
-	void boonLog(CharSequence str) {
-		StringBuilder s = new StringBuilder();
-		s.append("[BOON]");
-		s.append(str);
-		System.out.println(s);
-		System.out.flush();
-	}
+//	}
 
 	final Runnable singleThreadedDumpStats = SerializedTaskExecutor.onceMore(this::dumpStats);
 	
@@ -439,7 +433,6 @@ public class TorrentDumper implements Component {
 				Path statsFile = toStore.statsName(statsDir, null);
 				
 				Path tempFile = Files.createTempFile(statsDir, statsFile.getFileName().toString(), ".stats");
-				boonLog(toStore);
 
 				try(FileChannel ch = FileChannel.open(tempFile, StandardOpenOption.WRITE)) {
 					buf.clear();
@@ -814,7 +807,7 @@ public class TorrentDumper implements Component {
 				while(torrent.hasRemaining())
 					chan.write(torrent);
 
-				boonLog(TorrentInfo.decodeTorrent(TorrentUtils.wrapBareInfoDictionary(infoDict)));
+				l.log(TorrentInfo.decodeTorrent(TorrentUtils.wrapBareInfoDictionary(infoDict)));
 			}
 			synchronized (downloadedFilter) {
 				downloadedFilter.insert(stats.k.asBuffer());
