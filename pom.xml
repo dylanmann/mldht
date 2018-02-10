@@ -6,8 +6,8 @@
 	<name>mldht - Bittorrent Mainline DHT library</name>
 	<packaging>jar</packaging>
 	<scm>
-		<connection>scm:git:https://github.com/the8472/mldht.git</connection>
-		<url>https://github.com/the8472/mldht</url>
+		<connection>scm:git:git@github.com:dylanmann/mldht.git</connection>
+		<url>https://github.com/dylanmann/mldht</url>
 	</scm>
 	<distributionManagement>
 		<repository>
