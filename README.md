@@ -48,7 +48,7 @@ installed via maven:
 
 ## build
 
-    git clone https://github.com/the8472/mldht.git .
+    git clone https://github.com/dylanmann/mldht.git .
     mvn package dependency:copy-dependencies appassembler:assemble
     # install symlink scripts to ~/bin/ 
     mvn antrun:run@link
