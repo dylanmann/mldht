@@ -11,9 +11,7 @@
     <useBootstrapServers>true</useBootstrapServers>
     <multihoming>false</multihoming>
     <persistID>true</persistID>
-<!--	 
     <disableIPVersion>6</disableIPVersion>
--->	
   </core>
     
   <components>
