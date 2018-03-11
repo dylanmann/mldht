@@ -81,11 +81,12 @@ import java.util.stream.Stream;
 
 public class TorrentDumper implements Component {
 
-    BoonLogger l = BoonLogger.getLogger();
 	Collection<DHT> dhts;
 	Path storageDir = Paths.get(".", "dump-storage");
 	Path statsDir = storageDir.resolve("stats");
 	Path torrentDir = storageDir.resolve("torrents");
+
+	BoonLogger l = BoonLogger.getLogger();
 	
 	private static final int MAX_STAT_FILE_SIZE = 8*1024;
 	private static final int QUOTA = 100_000;
@@ -198,7 +199,8 @@ public class TorrentDumper implements Component {
 		
 		public Path name(Path dir, String suffix) {
 			String hex = k.toString(false);
-			return dir.resolve(hex.substring(0, 2)).resolve(hex.substring(2, 4)).resolve(hex+suffix);
+//			return dir.resolve(hex.substring(0, 2)).resolve(hex.substring(2, 4)).resolve(hex+suffix);
+			return dir.resolve(hex+suffix);
 		}
 		
 		public Path statsName(Path statsDir, State st) {
@@ -256,6 +258,10 @@ public class TorrentDumper implements Component {
 			}
 			
 		}, 5, 15, TimeUnit.MINUTES);
+
+		scheduler.scheduleWithFixedDelay(() -> {
+			l.batchTorrentUpload(torrentDir);
+		}, 5, 60, TimeUnit.SECONDS);
 	}
 	
 	void log(Throwable t) {
@@ -310,6 +316,7 @@ public class TorrentDumper implements Component {
 				return; // they're looking for something that's significantly closer to their own ID than we are
 			process(gpr.getInfoHash(), theirID, gpr.getOrigin(), null);
 			l.log("[GET_PEERS] Hash:"+ gpr.getInfoHash().toString(false) + " ID:" + theirID.toString(false) + " IP:" + gpr.getOrigin());
+			l.logGetPeers(gpr);
 		}
 		if(m instanceof AnnounceRequest) {
 			AnnounceRequest anr = (AnnounceRequest) m;
@@ -806,7 +813,6 @@ public class TorrentDumper implements Component {
 				ByteBuffer torrent = TorrentUtils.wrapBareInfoDictionary(infoDict);
 				while(torrent.hasRemaining())
 					chan.write(torrent);
-
 				l.log(TorrentInfo.decodeTorrent(TorrentUtils.wrapBareInfoDictionary(infoDict)));
 			}
 			synchronized (downloadedFilter) {
