@@ -62,9 +62,9 @@ Maven repos are linked in the badges.
 
     mkdir -p work
     cd work
-    ../bin/mldht-daemon
+    ../bin/mldht
     # or manually
-    # java -cp "../target/*:../target/dependency/*" the8472.mldht.Launcher &
+    # java -cp "../target/*:../target/dependency/*" the8472.mldht.Launcher
     
 this will create various files in the current working directory
 - `config.xml`, change settings as needed, core settings will be picked up on file modification
