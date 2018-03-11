@@ -1,5 +1,8 @@
 package the8472.mldht.indexing;
 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.transfer.*;
 import lbms.plugins.mldht.kad.messages.GetPeersRequest;
 import java.io.File;
@@ -8,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BoonLogger {
 
@@ -17,7 +19,11 @@ public class BoonLogger {
     private TransferManager transferManager;
 
     private BoonLogger() {
-        transferManager = TransferManagerBuilder.defaultTransferManager();
+        AmazonS3 client = AmazonS3ClientBuilder.standard()
+                .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
+                .withRegion("us-east-1")
+                .build();
+        transferManager = TransferManagerBuilder.standard().withS3Client(client).build();
     }
 
 
@@ -44,8 +50,7 @@ public class BoonLogger {
 
     public void batchTorrentUpload(Path torrentDir) {
         try {
-            System.out.println("batchTorrentUpload called");
-            Files.list(torrentDir).forEach(System.out::println);
+            System.out.println("[BOON] batchTorrentUpload called");
             List<File> files = Files.list(torrentDir).map(Path::toFile).collect(Collectors.toList());
             if (files.isEmpty()) {
                 return;
@@ -56,7 +61,7 @@ public class BoonLogger {
                     torrentDir.toFile(),
                     files);
             upload.waitForCompletion();
-            System.out.println("batchTorrentUpload finished");
+            System.out.println("[BOON] batchTorrentUpload finished");
             files.forEach(File::delete);
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
