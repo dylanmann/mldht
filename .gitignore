@@ -6,3 +6,6 @@
 /work/
 *.class
 /repo
+
+terraform/keys.tf
+/.idea
