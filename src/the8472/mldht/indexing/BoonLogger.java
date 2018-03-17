@@ -56,7 +56,7 @@ public class BoonLogger {
 
     private BoonLogger() {
         try {
-            geoReader = new DatabaseReader.Builder(database)/*.withCache(new CHMCache())*/.build();
+            geoReader = new DatabaseReader.Builder(database).withCache(new CHMCache()).build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
