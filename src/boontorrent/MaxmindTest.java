@@ -1,10 +1,14 @@
 package boontorrent;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.record.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -47,5 +51,16 @@ public class MaxmindTest {
         Location location = response.getLocation();
         System.out.println(location.getLatitude());  // 44.9733
         System.out.println(location.getLongitude()); // -93.2323
+
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        JsonFactory jsonFactory = new JsonFactory();
+        JsonGenerator generator = jsonFactory.createGenerator(stream, JsonEncoding.UTF8);
+        generator.writeStartObject();
+        generator.writeStringField("country", country.getName());
+        generator.writeNumberField("Lat", location.getLatitude());
+        generator.writeEndObject();
+        generator.close();
+        System.out.println(stream.toString());
     }
 }

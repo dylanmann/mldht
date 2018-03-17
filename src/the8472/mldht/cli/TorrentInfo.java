@@ -7,6 +7,7 @@ package the8472.mldht.cli;
 
 import static the8472.utils.Functional.typedGet;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import the8472.bencode.PrettyPrinter;
 import the8472.bencode.Tokenizer.BDecodingException;
 import the8472.bt.TorrentUtils;
@@ -28,13 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -215,30 +210,28 @@ public class TorrentInfo {
 		}).forEach(printer::accept);
 	}
 
-	public static String decodeTorrent(ByteBuffer b) {
+	public static void decodeTorrent(ByteBuffer b, JsonGenerator generator) throws IOException {
 		TorrentInfo ti = new TorrentInfo(null);
+
 		ti.raw = b;
 		try {
 			ti.decode();
 		} catch(BDecodingException ex) {
-			return "New torrent does not appear to be a bencoded file: " + ex.getMessage();
+			return;
 		}
 
-
-		if(ti.info == null)
-			return ti.infoHash() + " does not contain an info dictionary";
+		if(ti.info == null) {
+			return;
+		}
 
 		long length = typedGet(ti.info, "length", Long.class).orElse(0L);
 		int numFiles = 1;
 
-		StringBuilder result = new StringBuilder();
 		Optional<String> name = ti.name();
 
 		if(!name.isPresent()) {
-			return ti.infoHash().toString(false) + " does not contain a name field";
+			return;
 		}
-
-		String largestFile = "";
 
 		List<Map<String, Object>> files = ti.files();
 
@@ -249,18 +242,9 @@ public class TorrentInfo {
 
 		String newline = "\\u000a|\\u000b|\\u000c|\\u000d|\\u0085|\\u2028|\\u2029";
 
-		result.append("[NEW_TORRENT] name:");
-		ti.name().map(s -> s.replaceAll(newline, " ")).ifPresent(result::append);
-
-		result.append(" size:");
-		result.append(MathUtils.humanReadableBytes(length));
-		result.append(" files:");
-		result.append(numFiles);
-
-		result.append(" hash:");
-		result.append(ti.infoHash().toString(false));
-
-		return result.toString();
+        generator.writeStringField("infohash", ti.infoHash().toString(false));
+        generator.writeStringField("name", ti.name().map(s -> s.replaceAll(newline, " ")).get());
+		generator.writeNumberField("size", length);
+		generator.writeNumberField("files", numFiles);
 	}
-
 }

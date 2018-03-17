@@ -21,7 +21,7 @@ The following outlines the algorithm used by mldht for BEP 51 indexing. Other ap
 3. query non-visited nodes within the current bucket's candidate list with a `target` ID set to a random ID within the bucket's range
 4. split buckets and redistribute nodes when the bucket covering the *cursor* would overflow the responded nodes list
 5. when the candidates list within the bucket is exhausted advance *cursor* to the lowest ID covered by the next in natural keyspace order, i.e. in the direction from 0x00... to 0xFF...
-  1. perform bucket merges below the new cursor.
+  1. perform bucketk merges below the new cursor.
   2. populate the new home bucket with additional candidates from the normal routing 
 6. repeat queries, splitting and cursor-advancement until the advancement would point beyond the keyspace
 

@@ -315,14 +315,12 @@ public class TorrentDumper implements Component {
 			if(theirCloseness > myCloseness && theirCloseness - myCloseness >= 8)
 				return; // they're looking for something that's significantly closer to their own ID than we are
 			process(gpr.getInfoHash(), theirID, gpr.getOrigin(), null);
-			l.log("[GET_PEERS] Hash:"+ gpr.getInfoHash().toString(false) + " ID:" + theirID.toString(false) + " IP:" + gpr.getOrigin());
 			l.logGetPeers(gpr);
 		}
 		if(m instanceof AnnounceRequest) {
 			AnnounceRequest anr = (AnnounceRequest) m;
 			process(anr.getInfoHash(), anr.getID(), anr.getOrigin(), anr.getNameUTF8().orElse(null));
-			String name = anr.getNameUTF8().orElse(null);
-			l.log("[ANNOUNCE]  Hash:"+ anr.getInfoHash().toString(false) + " ID:" + anr.getID().toString(false) + " IP:" + anr.getOrigin() + (name != null ? " NAME: " + name : ""));
+			l.logAnnounce(anr);
 		}
 	}
 	
@@ -348,19 +346,6 @@ public class TorrentDumper implements Component {
 		}
 			
 	}
-
-
-// LOGGING FOR STATS, WE DON'T NEED THIS
-//	void boonLog(FetchStats stats) {
-//		StringBuilder s = new StringBuilder();
-//		s.append("[STATS]");
-//		s.append("key:");
-//		s.append(stats.k);
-//		s.append(" Sources: [ ");
-//		s.append(stats.recentSources.stream().map(x-> x.getID()+"/"+x.getAddress()).collect(joining(" | ")));
-//		s.append(" ]");
-//		boonLog(s);
-//	}
 
 	final Runnable singleThreadedDumpStats = SerializedTaskExecutor.onceMore(this::dumpStats);
 	
@@ -790,7 +775,7 @@ public class TorrentDumper implements Component {
 			}
 			
 			Optional<ByteBuffer> result = t.getResult();
-			
+
 			if(!result.isPresent()) {
 				stats.setState(FetchStats.State.FAILED);
 				stats.fetchCount++;
@@ -813,7 +798,7 @@ public class TorrentDumper implements Component {
 				ByteBuffer torrent = TorrentUtils.wrapBareInfoDictionary(infoDict);
 				while(torrent.hasRemaining())
 					chan.write(torrent);
-				l.log(TorrentInfo.decodeTorrent(TorrentUtils.wrapBareInfoDictionary(infoDict)));
+				l.logResolve(TorrentUtils.wrapBareInfoDictionary(infoDict), stats, t);
 			}
 			synchronized (downloadedFilter) {
 				downloadedFilter.insert(stats.k.asBuffer());
