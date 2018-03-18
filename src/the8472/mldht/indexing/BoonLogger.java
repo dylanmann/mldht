@@ -32,8 +32,6 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -123,7 +121,10 @@ public class BoonLogger {
         Key theirID = gpr.getID();
         Key infohash = gpr.getInfoHash();
         InetAddress theirIP = gpr.getOrigin().getAddress();
-        InetAddress ourIP = gpr.getOrigin().getAddress();
+        InetAddress ourIP = srv.getPublicAddress();
+        if(ourIP == null) {
+            ourIP = srv.getConsensusExternalAddress().getAddress();
+        }
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
@@ -142,13 +143,14 @@ public class BoonLogger {
             generator.writeEndObject();
             generator.close();
 
-            System.out.println(stream.toString());
+            sendToKinesis(stream, infohash.toString(false));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void logAnnounce(AnnounceRequest anr) {
+        System.out.println("IN ANNOUNCE");
         RPCServer srv = anr.getServer();
 
         Key ourID    = srv.getDerivedID();
@@ -156,7 +158,10 @@ public class BoonLogger {
         Key infohash = anr.getInfoHash();
 
         InetAddress theirIP = anr.getOrigin().getAddress();
-        InetAddress ourIP   = anr.getOrigin().getAddress();
+        InetAddress ourIP = srv.getPublicAddress();
+        if(ourIP == null) {
+            ourIP = srv.getConsensusExternalAddress().getAddress();
+        }
 
         boolean isSeed = anr.isSeed();
         Optional<String> name = anr.getNameUTF8();
@@ -183,7 +188,7 @@ public class BoonLogger {
             generator.writeEndObject();
             generator.close();
 
-            System.out.println(stream.toString());
+            sendToKinesis(stream, infohash.toString(false));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -205,30 +210,27 @@ public class BoonLogger {
             for(KBucketEntry kbe : sources) {
                 generator.writeStartObject();
                 generator.writeStringField("ip", kbe.getAddress().getAddress().toString());
-                generator.writeStringField("node_id", kbe.getID().toString());
+                generator.writeStringField("node_id", kbe.getID().toString(false));
                 addGeoInfo(generator, kbe.getAddress().getAddress());
                 generator.writeEndObject();
             }
             generator.writeEndArray();
-
             generator.writeEndObject();
             generator.close();
-            System.out.println(stream.toString());
+
+            sendToKinesis(stream, task.infohash().toString(false));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void log(CharSequence str) {
-        StringBuilder s = new StringBuilder();
-        s.append("[BOON]");
-        s.append(str);
-        System.out.println(s);
+    public void sendToKinesis(ByteArrayOutputStream stream, String infohash) {
+        System.out.println(stream);
 
         PutRecordRequest putRecordRequest = new PutRecordRequest()
                 .withStreamName(STREAM_NAME)
-                .withPartitionKey("partition")
-                .withData(ByteBuffer.wrap(str.toString().getBytes()));
+                .withPartitionKey(infohash)
+                .withData(ByteBuffer.wrap(stream.toByteArray()));
         kinesis.putRecord(putRecordRequest);
     }
 
