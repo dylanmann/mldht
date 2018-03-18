@@ -30,10 +30,9 @@ import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,8 +77,7 @@ public class BoonLogger {
         return logger;
     }
 
-
-    public void addGeoInfo(JsonGenerator generator, InetAddress ip) throws IOException {
+    private void addGeoInfo(JsonGenerator generator, InetAddress ip) throws IOException {
         if (ip instanceof Inet6Address) {
             return;
         }
@@ -137,6 +135,12 @@ public class BoonLogger {
             generator.writeStringField("our_ip", ourIP.getHostAddress().toString());
             generator.writeStringField("their_ip", theirIP.getHostAddress().toString());
 
+            Optional<byte[]> versionBytes = gpr.getVersion();
+            if (versionBytes.isPresent()) {
+                String versionString = new String(versionBytes.get(), StandardCharsets.US_ASCII);
+                generator.writeStringField("version", versionString);
+            }
+
             addGeoInfo(generator, theirIP);
 
             generator.writeEndObject();
@@ -178,6 +182,12 @@ public class BoonLogger {
             generator.writeStringField("their_ip", theirIP.getHostAddress().toString());
             generator.writeBooleanField("is_seed", isSeed);
 
+            Optional<byte[]> versionBytes = anr.getVersion();
+            if (versionBytes.isPresent()) {
+                String versionString = new String(versionBytes.get(), StandardCharsets.US_ASCII);
+                generator.writeStringField("version", versionString);
+            }
+
             addGeoInfo(generator, theirIP);
 
             generator.writeEndObject();
@@ -203,11 +213,13 @@ public class BoonLogger {
             List<KBucketEntry> sources = stats.recentSources;
             generator.writeArrayFieldStart("peers");
             for(KBucketEntry kbe : sources) {
-                generator.writeStartObject();
-                generator.writeStringField("ip", kbe.getAddress().getAddress().toString());
-                generator.writeStringField("node_id", kbe.getID().toString());
-                addGeoInfo(generator, kbe.getAddress().getAddress());
-                generator.writeEndObject();
+                if (kbe.lastSendTime() != -1) {
+                    generator.writeStartObject();
+                    generator.writeStringField("ip", kbe.getAddress().getAddress().toString());
+                    generator.writeStringField("node_id", kbe.getID().toString());
+                    addGeoInfo(generator, kbe.getAddress().getAddress());
+                    generator.writeEndObject();
+                }
             }
             generator.writeEndArray();
 
