@@ -19,6 +19,7 @@ import com.maxmind.geoip2.record.*;
 import lbms.plugins.mldht.kad.KBucketEntry;
 import lbms.plugins.mldht.kad.Key;
 import lbms.plugins.mldht.kad.RPCServer;
+import lbms.plugins.mldht.kad.messages.AbstractLookupRequest;
 import lbms.plugins.mldht.kad.messages.AnnounceRequest;
 import lbms.plugins.mldht.kad.messages.GetPeersRequest;
 import the8472.mldht.TorrentFetcher;
@@ -77,6 +78,20 @@ public class BoonLogger {
         return logger;
     }
 
+    private String getVersionStringFromRequest(AbstractLookupRequest req) {
+        if (req.getVersion().isPresent()) {
+            byte[] versionBytes = req.getVersion().get();
+            char[] version = new char[4];
+            version[0] = (char) versionBytes[0];
+            version[1] = (char) versionBytes[1];
+            version[2] = (char) (versionBytes[2] + '0');
+            version[3] = (char) (versionBytes[3] + '0');
+            return new String(version);
+        } else {
+            return null;
+        }
+    }
+
     private void addGeoInfo(JsonGenerator generator, InetAddress ip) throws IOException {
         if (ip instanceof Inet6Address) {
             return;
@@ -131,13 +146,8 @@ public class BoonLogger {
             generator.writeStringField("infohash", infohash.toString(false));
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
-            generator.writeStringField("their_ip", theirIP.getHostAddress().toString());
-
-            Optional<byte[]> versionBytes = gpr.getVersion();
-            if (versionBytes.isPresent()) {
-                String versionString = new String(versionBytes.get(), StandardCharsets.US_ASCII);
-                generator.writeStringField("version", versionString);
-            }
+            generator.writeStringField("their_ip", theirIP.getHostAddress());
+            generator.writeStringField("version", getVersionStringFromRequest(gpr));
 
             addGeoInfo(generator, theirIP);
 
@@ -175,14 +185,9 @@ public class BoonLogger {
 
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
-            generator.writeStringField("their_ip", theirIP.getHostAddress().toString());
+            generator.writeStringField("their_ip", theirIP.getHostAddress());
+            generator.writeStringField("version", getVersionStringFromRequest(anr));
             generator.writeBooleanField("is_seed", isSeed);
-
-            Optional<byte[]> versionBytes = anr.getVersion();
-            if (versionBytes.isPresent()) {
-                String versionString = new String(versionBytes.get(), StandardCharsets.US_ASCII);
-                generator.writeStringField("version", versionString);
-            }
 
             addGeoInfo(generator, theirIP);
 
