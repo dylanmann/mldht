@@ -121,10 +121,6 @@ public class BoonLogger {
         Key theirID = gpr.getID();
         Key infohash = gpr.getInfoHash();
         InetAddress theirIP = gpr.getOrigin().getAddress();
-        InetAddress ourIP = srv.getPublicAddress();
-        if(ourIP == null) {
-            ourIP = srv.getConsensusExternalAddress().getAddress();
-        }
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
@@ -135,7 +131,6 @@ public class BoonLogger {
             generator.writeStringField("infohash", infohash.toString(false));
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
-            generator.writeStringField("our_ip", ourIP.getHostAddress().toString());
             generator.writeStringField("their_ip", theirIP.getHostAddress().toString());
 
             addGeoInfo(generator, theirIP);
@@ -158,10 +153,6 @@ public class BoonLogger {
         Key infohash = anr.getInfoHash();
 
         InetAddress theirIP = anr.getOrigin().getAddress();
-        InetAddress ourIP = srv.getPublicAddress();
-        if(ourIP == null) {
-            ourIP = srv.getConsensusExternalAddress().getAddress();
-        }
 
         boolean isSeed = anr.isSeed();
         Optional<String> name = anr.getNameUTF8();
@@ -179,7 +170,6 @@ public class BoonLogger {
 
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
-            generator.writeStringField("our_ip", ourIP.getHostAddress().toString());
             generator.writeStringField("their_ip", theirIP.getHostAddress().toString());
             generator.writeBooleanField("is_seed", isSeed);
 
