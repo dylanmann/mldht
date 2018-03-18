@@ -7,7 +7,7 @@ UNLOCK="-XX:+UnlockExperimentalVMOptions -XX:+UnlockDiagnosticVMOptions"
 # PROFILER="-agentpath:$DIR/../lib/libjprofilerti.so=port=10040,address=127.0.0.1,nowait"
 # PROFILER="-agentpath:$DIR/../lib/libyjpagent.so=listen=127.0.0.1:10040,telemetryperiod=100"
 
-GC="-Xms300m -Xmx1500M -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:MaxGCPauseMillis=15 -XX:GCTimeRatio=19 -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
+GC="-Xms300m -Xmx3000M -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:MaxGCPauseMillis=15 -XX:GCTimeRatio=19 -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
 
 LOG=(-Xloggc:logs/gc.log -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -XX:+HeapDumpBeforeFullGC -XX:+HeapDumpOnOutOfMemoryError "-XX:OnOutOfMemoryError=kill -9 %p")
 
