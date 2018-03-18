@@ -45,6 +45,7 @@ public class BoonLogger {
     private static final File database = new File(System.getProperty("user.home"), "GeoLite2-City.mmdb");
 
     private static final BoonLogger logger = new BoonLogger();
+    private Key ourID;
 
 
     private TransferManager transferManager;
@@ -117,7 +118,7 @@ public class BoonLogger {
     public void logGetPeers(GetPeersRequest gpr) {
         RPCServer srv = gpr.getServer();
 
-        Key ourID = srv.getDerivedID();
+        ourID = srv.getDerivedID();
         Key theirID = gpr.getID();
         Key infohash = gpr.getInfoHash();
         InetAddress theirIP = gpr.getOrigin().getAddress();
@@ -153,7 +154,7 @@ public class BoonLogger {
     public void logAnnounce(AnnounceRequest anr) {
         RPCServer srv = anr.getServer();
 
-        Key ourID    = srv.getDerivedID();
+        ourID        = srv.getDerivedID();
         Key theirID  = anr.getID();
         Key infohash = anr.getInfoHash();
 
@@ -204,6 +205,7 @@ public class BoonLogger {
             JsonGenerator generator = jsonFactory.createGenerator(stream, JsonEncoding.UTF8);
             generator.writeStartObject();
             generator.writeStringField("type", "resolve");
+            generator.writeStringField("our_id", ourID.toString(false));
             TorrentInfo.decodeTorrent(torrent, generator);
 
             List<KBucketEntry> sources = stats.recentSources;
@@ -216,11 +218,6 @@ public class BoonLogger {
                     addGeoInfo(generator, kbe.getAddress().getAddress());
                     generator.writeEndObject();
                 }
-                generator.writeStartObject();
-                generator.writeStringField("ip", kbe.getAddress().getAddress().getHostAddress().toString());
-                generator.writeStringField("node_id", kbe.getID().toString(false));
-                addGeoInfo(generator, kbe.getAddress().getAddress());
-                generator.writeEndObject();
             }
             generator.writeEndArray();
             generator.writeEndObject();

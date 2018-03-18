@@ -796,8 +796,9 @@ public class TorrentDumper implements Component {
 			
 			try(FileChannel chan = FileChannel.open(torrentFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
 				ByteBuffer torrent = TorrentUtils.wrapBareInfoDictionary(infoDict);
-				while(torrent.hasRemaining())
+				while(torrent.hasRemaining()) {
 					chan.write(torrent);
+				}
 				l.logResolve(TorrentUtils.wrapBareInfoDictionary(infoDict), stats, t);
 			}
 			synchronized (downloadedFilter) {
