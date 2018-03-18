@@ -217,11 +217,13 @@ public class BoonLogger {
             TorrentInfo.decodeTorrent(torrent, generator);
 
             List<KBucketEntry> sources = stats.recentSources;
+            generator.writeNumberField("num_peers", sources.size());
             generator.writeArrayFieldStart("peers");
             for(KBucketEntry kbe : sources) {
                 generator.writeStartObject();
                 generator.writeStringField("ip", kbe.getAddress().getAddress().getHostAddress().toString());
                 generator.writeStringField("node_id", kbe.getID().toString(false));
+                generator.writeNumberField("last_send_time", kbe.lastSendTime());
                 addGeoInfo(generator, kbe.getAddress().getAddress());
                 generator.writeEndObject();
             }
