@@ -145,7 +145,6 @@ public class BoonLogger {
     }
 
     public void logAnnounce(AnnounceRequest anr) {
-        System.out.println("IN ANNOUNCE");
         RPCServer srv = anr.getServer();
 
         Key ourID    = srv.getDerivedID();
@@ -227,7 +226,6 @@ public class BoonLogger {
 
     public void batchTorrentUpload(Path torrentDir) {
         try {
-            System.out.println("[BOON] batchTorrentUpload called");
             List<File> files = Files.list(torrentDir).map(Path::toFile).collect(Collectors.toList());
             if (files.isEmpty()) {
                 return;
@@ -238,7 +236,6 @@ public class BoonLogger {
                     torrentDir.toFile(),
                     files);
             upload.waitForCompletion();
-            System.out.println("[BOON] batchTorrentUpload finished");
             files.forEach(File::delete);
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
