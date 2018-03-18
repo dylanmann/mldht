@@ -42,7 +42,7 @@ public class BoonLogger {
     private static final String AWS_REGION = "us-east-1";
     private static final String STREAM_NAME = "boonlog";
     private static final String BUCKET_NAME = "boontorrent";
-    private static final int LOG_VERSION = 1;
+    private static final int LOG_VERSION = 3;
     private static final File database = new File(System.getProperty("user.home"), "GeoLite2-City.mmdb");
 
     private static final BoonLogger logger = new BoonLogger();
@@ -79,17 +79,27 @@ public class BoonLogger {
         return logger;
     }
 
-    private String getVersionStringFromRequest(AbstractLookupRequest req) {
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    private static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    private void addDHTVersionInfo(JsonGenerator generator, AbstractLookupRequest req) throws IOException {
         if (req.getVersion().isPresent()) {
             byte[] versionBytes = req.getVersion().get();
-            char[] version = new char[4];
-            version[0] = (char) versionBytes[0];
-            version[1] = (char) versionBytes[1];
-            version[2] = (char) (versionBytes[2] + '0');
-            version[3] = (char) (versionBytes[3] + '0');
-            return new String(version);
-        } else {
-            return null;
+
+            char[] versionID = new char[2];
+            versionID[0] = (char) versionBytes[0];
+            versionID[1] = (char) versionBytes[1];
+
+            generator.writeStringField("version", new String(versionID));
+            generator.writeStringField("version_hex", bytesToHex(versionBytes));
         }
     }
 
@@ -149,8 +159,8 @@ public class BoonLogger {
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
             generator.writeStringField("their_ip", theirIP.getHostAddress());
-            generator.writeStringField("version", getVersionStringFromRequest(gpr));
 
+            addDHTVersionInfo(generator, gpr);
             addGeoInfo(generator, theirIP);
 
             generator.writeEndObject();
@@ -189,7 +199,9 @@ public class BoonLogger {
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
             generator.writeStringField("their_ip", theirIP.getHostAddress());
-            generator.writeStringField("version", getVersionStringFromRequest(anr));
+
+            addDHTVersionInfo(generator, anr);
+
             generator.writeBooleanField("is_seed", isSeed);
 
             addGeoInfo(generator, theirIP);
