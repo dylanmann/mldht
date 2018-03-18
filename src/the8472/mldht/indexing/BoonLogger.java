@@ -217,7 +217,7 @@ public class BoonLogger {
                     generator.writeEndObject();
                 }
                 generator.writeStartObject();
-                generator.writeStringField("ip", kbe.getAddress().getAddress().toString());
+                generator.writeStringField("ip", kbe.getAddress().getAddress().getHostAddress().toString());
                 generator.writeStringField("node_id", kbe.getID().toString(false));
                 addGeoInfo(generator, kbe.getAddress().getAddress());
                 generator.writeEndObject();
