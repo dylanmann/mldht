@@ -10,7 +10,7 @@
     <port>49001</port>
     <useBootstrapServers>true</useBootstrapServers>
     <multihoming>false</multihoming>
-    <persistID>true</persistID>
+    <persistID>false</persistID>
     <!--<disableIPVersion>6</disableIPVersion>-->
   </core>
     
