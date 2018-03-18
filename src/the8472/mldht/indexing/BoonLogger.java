@@ -219,13 +219,11 @@ public class BoonLogger {
             List<KBucketEntry> sources = stats.recentSources;
             generator.writeArrayFieldStart("peers");
             for(KBucketEntry kbe : sources) {
-                if (kbe.lastSendTime() != -1) {
-                    generator.writeStartObject();
-                    generator.writeStringField("ip", kbe.getAddress().getAddress().getHostAddress().toString());
-                    generator.writeStringField("node_id", kbe.getID().toString(false));
-                    addGeoInfo(generator, kbe.getAddress().getAddress());
-                    generator.writeEndObject();
-                }
+                generator.writeStartObject();
+                generator.writeStringField("ip", kbe.getAddress().getAddress().getHostAddress().toString());
+                generator.writeStringField("node_id", kbe.getID().toString(false));
+                addGeoInfo(generator, kbe.getAddress().getAddress());
+                generator.writeEndObject();
             }
             generator.writeEndArray();
             generator.writeEndObject();
