@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -41,8 +40,9 @@ import java.util.stream.Collectors;
 public class BoonLogger {
 
     private static final String AWS_REGION = "us-east-1";
-    private static final String STREAM_NAME = "boontorrent-test";
+    private static final String STREAM_NAME = "boonlog";
     private static final String BUCKET_NAME = "boontorrent";
+    private static final int LOG_VERSION = 1;
     private static final File database = new File(System.getProperty("user.home"), "GeoLite2-City.mmdb");
 
     private static final BoonLogger logger = new BoonLogger();
@@ -143,6 +143,7 @@ public class BoonLogger {
             JsonGenerator generator = jsonFactory.createGenerator(stream, JsonEncoding.UTF8);
             generator.writeStartObject();
             generator.writeStringField("type", "get_peers");
+            generator.writeNumberField("v", LOG_VERSION);
             generator.writeStringField("infohash", infohash.toString(false));
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeStringField("their_id", theirID.toString(false));
@@ -178,6 +179,7 @@ public class BoonLogger {
             JsonGenerator generator = jsonFactory.createGenerator(stream, JsonEncoding.UTF8);
             generator.writeStartObject();
             generator.writeStringField("type", "announce");
+            generator.writeNumberField("v", LOG_VERSION);
             generator.writeStringField("infohash", infohash.toString(false));
             if(name.isPresent()) {
                 generator.writeStringField("name", name.get());
@@ -209,6 +211,7 @@ public class BoonLogger {
             JsonGenerator generator = jsonFactory.createGenerator(stream, JsonEncoding.UTF8);
             generator.writeStartObject();
             generator.writeStringField("type", "resolve");
+            generator.writeNumberField("v", LOG_VERSION);
             TorrentInfo.decodeTorrent(torrent, generator);
 
             List<KBucketEntry> sources = stats.recentSources;
