@@ -251,9 +251,8 @@ public class BoonLogger {
     }
 
     public void sendToKinesis(ByteArrayOutputStream stream, String infohash) {
-        stream.write('\n');
         System.out.println(stream);
-
+        stream.write('\n');
         PutRecordRequest putRecordRequest = new PutRecordRequest()
                 .withStreamName(STREAM_NAME)
                 .withPartitionKey(infohash)
