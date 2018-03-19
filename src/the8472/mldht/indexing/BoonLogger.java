@@ -42,7 +42,7 @@ public class BoonLogger {
     private static final String AWS_REGION = "us-east-1";
     private static final String STREAM_NAME = "boonlog";
     private static final String BUCKET_NAME = "boontorrent";
-    private static final int LOG_VERSION = 3;
+    private static final int LOG_VERSION = 4;
     private static final File database = new File(System.getProperty("user.home"), "GeoLite2-City.mmdb");
 
     private static final BoonLogger logger = new BoonLogger();
@@ -161,6 +161,7 @@ public class BoonLogger {
             generator.writeStringField("their_ip", theirIP.getHostAddress());
 
             addDHTVersionInfo(generator, gpr);
+            generator.writeNumberField("timestamp", System.currentTimeMillis());
             addGeoInfo(generator, theirIP);
 
             generator.writeEndObject();
@@ -203,6 +204,7 @@ public class BoonLogger {
             addDHTVersionInfo(generator, anr);
 
             generator.writeBooleanField("is_seed", isSeed);
+            generator.writeNumberField("timestamp", System.currentTimeMillis());
 
             addGeoInfo(generator, theirIP);
 
@@ -227,6 +229,7 @@ public class BoonLogger {
             generator.writeStringField("our_id", ourID.toString(false));
             generator.writeNumberField("v", LOG_VERSION);
             TorrentInfo.decodeTorrent(torrent, generator);
+            generator.writeNumberField("timestamp", System.currentTimeMillis());
 
             List<KBucketEntry> sources = stats.recentSources;
             generator.writeNumberField("num_peers", sources.size());
