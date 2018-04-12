@@ -132,7 +132,7 @@ public class BoonLogger {
         if(city != null) {
             generator.writeStringField("city", city.getName());
         }
-        if(location != null) {
+        if(location != null && location.getLatitude() != null && location.getLongitude() != null) {
             generator.writeNumberField("latitude", location.getLatitude());
             generator.writeNumberField("longitude", location.getLongitude());
             generator.writeNumberField("accuracy", location.getAccuracyRadius());
