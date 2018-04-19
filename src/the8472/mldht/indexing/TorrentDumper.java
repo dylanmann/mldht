@@ -468,7 +468,7 @@ public class TorrentDumper implements Component {
 		try {
 			Supplier<Stream<Path>> supplyInitial = () -> unchecked(() -> fetchStatsStream(Stream.of(initialDir)));
 			Supplier<Stream<Path>> supplyFailed = () -> unchecked(() -> fetchStatsStream(Stream.of(failedDir)));
-			Predicate<FetchStats> deleteInitial = stat -> now - stat.creationTime > TimeUnit.DAYS.toMillis(4);
+			Predicate<FetchStats> deleteInitial = stat -> now - stat.creationTime > TimeUnit.DAYS.toMillis(2);
 			Predicate<FetchStats> deleteFailed = stat -> {
 				long timeSinceFetch = now - stat.lastFetchTime;
 				
