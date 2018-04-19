@@ -199,7 +199,11 @@ public class TorrentDumper implements Component {
 		
 		public Path name(Path dir, String suffix) {
 			String hex = k.toString(false);
-//			return dir.resolve(hex.substring(0, 2)).resolve(hex.substring(2, 4)).resolve(hex+suffix);
+			return dir.resolve(hex.substring(0, 2)).resolve(hex.substring(2, 4)).resolve(hex+suffix);
+		}
+
+		public Path torrent_name(Path dir, String suffix) {
+			String hex = k.toString(false);
 			return dir.resolve(hex+suffix);
 		}
 		
@@ -452,7 +456,7 @@ public class TorrentDumper implements Component {
 	}
 	
 	boolean torrentExists(FetchStats st) {
-		return Files.exists(st.name(torrentDir, ".torrent"));
+		return Files.exists(st.torrent_name(torrentDir, ".torrent"));
 	}
 	
 	void purgeStats() {
@@ -790,8 +794,8 @@ public class TorrentDumper implements Component {
 				return;
 			}
 			ByteBuffer infoDict = result.get();
-			
-			Path torrentFile = stats.name(torrentDir, ".torrent");
+
+			Path torrentFile = stats.torrent_name(torrentDir, ".torrent");
 			Files.createDirectories(torrentFile.getParent());
 			
 			try(FileChannel chan = FileChannel.open(torrentFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
